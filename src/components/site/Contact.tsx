@@ -7,7 +7,7 @@ import { Magnetic, Reveal, SectionLabel, SplitText } from "./anim";
 
 type State = "idle" | "sending" | "sent" | "error";
 const FIELD =
-  "w-full rounded-xl border border-line2 bg-ink/70 px-4 py-3.5 text-fg outline-none! transition-[border-color,box-shadow] duration-200 placeholder:text-mute focus:border-accent focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--accent)_16%,transparent)]";
+  "w-full rounded-xl border border-line2 bg-ink/70 px-4 py-3.5 text-base text-fg outline-none! transition-[border-color,box-shadow] duration-200 placeholder:text-mute focus:border-accent focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--accent)_16%,transparent)]";
 
 function Form() {
   const [state, setState] = useState<State>("idle");
@@ -171,7 +171,7 @@ export function Footer({ data, brand }: { data: Content["footer"]; brand: { text
 
   return (
     <footer className="overflow-hidden border-t border-line">
-      <div className="wrap flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-8 font-mono text-xs uppercase tracking-[0.06em] text-mute">
+      <div className="wrap flex flex-col gap-x-8 gap-y-3 py-8 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between font-mono text-xs uppercase tracking-[0.06em] text-mute">
       <span>{data.left}</span>
       <span>{data.center}</span>
       {time && <span className="tabular-nums">Local time {time}</span>}

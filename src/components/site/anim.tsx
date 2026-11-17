@@ -65,7 +65,13 @@ export function SplitText({
   stagger?: number;
   active?: boolean;
 }) {
-  const parts = by === "word" ? text.split(" ") : Array.from(text);
+  const mask = (part: string, key: number) => (
+    <span key={key} className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-bottom">
+      <motion.span className="inline-block" variants={rise}>
+        {part}
+      </motion.span>
+    </span>
+  );
   const container = {
     hidden: {},
     show: { transition: { staggerChildren: stagger ?? (by === "word" ? 0.06 : 0.035), delayChildren: delay } },
@@ -76,14 +82,11 @@ export function SplitText({
       : { animate: active ? "show" : "hidden" };
   return (
     <motion.span className={className} variants={container} initial="hidden" {...trigger}>
-      {parts.map((part, i) => (
-        <span key={i}>
-          <span className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-bottom">
-            <motion.span className="inline-block" variants={rise}>
-              {part === " " ? " " : part}
-            </motion.span>
-          </span>
-          {by === "word" && i < parts.length - 1 ? " " : null}
+      {/* Lines only break between words: letters of one word stay together. */}
+      {text.split(" ").map((word, w, words) => (
+        <span key={w}>
+          {by === "word" ? mask(word, 0) : <span className="whitespace-nowrap">{Array.from(word).map(mask)}</span>}
+          {w < words.length - 1 ? " " : null}
         </span>
       ))}
     </motion.span>

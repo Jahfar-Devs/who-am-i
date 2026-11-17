@@ -105,7 +105,7 @@ export function About({ data, index }: { data: Content["about"]; index: number }
       </h2>
 
       <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_420px] lg:gap-20">
-        <div className="flex flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-8">
           <div className="grid gap-8 text-[17px] leading-[1.75] text-soft md:grid-cols-2">
             {data.paragraphs.map((p, i) => (
               <Reveal key={i} delay={i * 0.1}>

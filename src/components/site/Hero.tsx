@@ -108,7 +108,7 @@ export default function Hero({ data }: { data: Hero }) {
           </p>
         </Reveal>
 
-        <h1 className="font-display text-[clamp(56px,13vw,188px)] font-bold uppercase leading-[0.88] tracking-[-0.045em]">
+        <h1 className="font-display text-[clamp(44px,14.2vw,max(56px,min(13vw,188px)))] font-bold uppercase leading-[0.88] tracking-[-0.045em]">
           <SplitText text={data.firstLine} by="letter" active={ready} delay={0.15} className="block" />
           <span className="block">
             <SplitText text={data.outlineWord} by="letter" active={ready} delay={0.35} className="outline-text" />{" "}

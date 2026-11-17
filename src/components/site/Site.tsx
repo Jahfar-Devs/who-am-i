@@ -25,7 +25,7 @@ export default function Site({ content: c }: { content: Content }) {
       <Ambient />
       <div className="grain" aria-hidden="true" />
       <Nav site={c.site} nav={c.nav} />
-      <main>
+      <main className="overflow-x-clip">
         <Hero data={c.hero} />
         {visible.map((id) => {
           const index = NUMBERED.has(id) ? ++n : 0;
