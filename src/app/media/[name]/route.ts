@@ -1,22 +1,18 @@
-import { promises as fs } from "fs";
 import path from "path";
-import { IMAGE_TYPES, SAFE_NAME, UPLOAD_DIR } from "@/lib/store";
+import { IMAGE_TYPES, media, SAFE_NAME } from "@/lib/store";
 
-/** Serves images uploaded from the admin panel (stored in ./data/uploads). */
+/** Serves images uploaded from the admin panel (stored in the R2 media bucket). */
 export async function GET(_req: Request, ctx: { params: Promise<{ name: string }> }) {
   const { name } = await ctx.params;
   const type = IMAGE_TYPES[path.extname(name).toLowerCase()];
   if (!SAFE_NAME.test(name) || !type) return new Response("Not found", { status: 404 });
-  try {
-    const file = await fs.readFile(path.join(UPLOAD_DIR, name));
-    return new Response(new Uint8Array(file), {
-      headers: {
-        "Content-Type": type,
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  } catch {
-    return new Response("Not found", { status: 404 });
-  }
+  const file = await media().get(name);
+  if (!file) return new Response("Not found", { status: 404 });
+  return new Response(file.body as unknown as ReadableStream, {
+    headers: {
+      "Content-Type": type,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

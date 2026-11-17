@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jahfar-portfolio",
+  // Personal Cloudflare account. Pinned so a deploy can never land in another account.
+  "account_id": "429ef908b3d1bdb887bc8a7f34a02e1d",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Site content and contact messages.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jahfar-portfolio",
+      "database_id": "2fb3da7a-4fc2-4e93-8b2f-b272879d48a7",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Files uploaded from the admin media library, served at /media/<name>.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "jahfar-portfolio-media"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

@@ -3,6 +3,9 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { getContent } from "@/lib/store";
 import "./globals.css";
 
+// Content comes from D1 on every request, so nothing is prerendered at build time.
+export const dynamic = "force-dynamic";
+
 const space = Space_Grotesk({ variable: "--font-space", subsets: ["latin"] });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const jb = JetBrains_Mono({ variable: "--font-jb", subsets: ["latin"] });

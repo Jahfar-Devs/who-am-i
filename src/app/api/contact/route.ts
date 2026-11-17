@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { clientIp, rateLimit } from "@/lib/auth";
-import { readMessages, writeMessages } from "@/lib/store";
+import { addMessage } from "@/lib/store";
 
 const clean = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -19,8 +19,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "Please fill in your name, a valid email and a message." }, { status: 400 });
   }
 
-  const messages = await readMessages();
-  messages.unshift({ id: randomUUID(), name, email, message, at: new Date().toISOString(), read: false });
-  await writeMessages(messages.slice(0, 500));
+  await addMessage({ id: randomUUID(), name, email, message, at: new Date().toISOString(), read: false });
   return Response.json({ ok: true });
 }

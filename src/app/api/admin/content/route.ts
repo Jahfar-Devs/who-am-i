@@ -1,7 +1,6 @@
-import { revalidateTag } from "next/cache";
 import { isAuthed, unauthorized } from "@/lib/auth";
 import { defaultContent } from "@/lib/default-content";
-import { CONTENT_TAG, readContent, writeContent } from "@/lib/store";
+import { readContent, writeContent } from "@/lib/store";
 
 export async function GET() {
   if (!(await isAuthed())) return unauthorized();
@@ -9,9 +8,7 @@ export async function GET() {
 }
 
 async function save(input: unknown) {
-  const content = await writeContent(input);
-  revalidateTag(CONTENT_TAG, { expire: 0 });
-  return Response.json({ content });
+  return Response.json({ content: await writeContent(input) });
 }
 
 export async function PUT(req: Request) {

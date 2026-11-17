@@ -55,7 +55,9 @@ export function unauthorized() {
 
 export async function clientIp() {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local";
+  return (
+    h.get("cf-connecting-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local"
+  );
 }
 
 // Small in-memory limiter: enough for a single-instance portfolio.

@@ -36,12 +36,17 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cloudflare
+/.open-next/
+/.wrangler/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # keep the example env file
 !.env.example
+.dev.vars
 
 # runtime data
 /data/messages.json
