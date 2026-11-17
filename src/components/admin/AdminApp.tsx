@@ -1,13 +1,14 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- previews of uploaded media */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { EASE } from "@/components/site/anim";
 import type { Content, SectionId } from "@/lib/default-content";
 import { normalizeContent } from "@/lib/shape";
 import type { MediaItem, Message } from "@/lib/store";
-import { BTN, GHOST, GHOST_DANGER, INPUT, isPdf, MediaCtx, Sections } from "./fields";
+import ConfirmDialog from "./Confirm";
+import { BTN, ConfirmCtx, GHOST, GHOST_DANGER, INPUT, isPdf, MediaCtx, Sections, type ConfirmOptions } from "./fields";
 import { Icon, type IconName } from "./icons";
 import Login from "./Login";
 import { TABS } from "./schema";
@@ -115,6 +116,7 @@ function MediaGrid({
   onDelete?: (name: string) => void;
   onPick?: (url: string) => void;
 }) {
+  const confirm = useContext(ConfirmCtx);
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [copied, setCopied] = useState("");
@@ -218,7 +220,7 @@ function MediaGrid({
                       <Icon name="external" size={16} />
                     </a>
                     {onDelete && (
-                      <button type="button" className={GHOST_DANGER} aria-label={`Delete ${m.name}`} onClick={() => window.confirm(`Delete ${m.name}? Sections using it will show a broken image.`) && onDelete(m.name)}>
+                      <button type="button" className={GHOST_DANGER} aria-label={`Delete ${m.name}`} onClick={async () => (await confirm({ title: `Delete ${m.name}?`, text: "Sections using this file will show a broken image. This cannot be undone." })) && onDelete(m.name)}>
                         <Icon name="trash" size={16} />
                       </button>
                     )}
@@ -247,6 +249,21 @@ export default function AdminApp() {
   const [toast, setToast] = useState<{ text: string; bad?: boolean } | null>(null);
   const [picker, setPicker] = useState<{ onPick: (url: string) => void } | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
+  const [ask, setAsk] = useState<ConfirmOptions | null>(null);
+  const answerRef = useRef<(yes: boolean) => void>(() => {});
+
+  const confirm = useCallback(
+    (options: ConfirmOptions) =>
+      new Promise<boolean>((resolve) => {
+        answerRef.current = resolve;
+        setAsk(options);
+      }),
+    [],
+  );
+  const answer = useCallback((yes: boolean) => {
+    answerRef.current(yes);
+    setAsk(null);
+  }, []);
 
   const notify = useCallback((text: string, bad = false) => setToast({ text, bad }), []);
   useEffect(() => {
@@ -402,7 +419,8 @@ export default function AdminApp() {
   const setVisible = (id: string, visible: boolean) => setContent({ ...c, [id]: { ...(c[id as SectionId] as object), visible } });
 
   const signOut = async () => {
-    if (dirty && !window.confirm("You have unsaved changes. Sign out anyway?")) return;
+    const text = dirty ? "You have unsaved changes. They will be lost if you sign out now." : "You will need your password to open the admin console again.";
+    if (!(await confirm({ title: "Sign out?", text, confirmLabel: "Sign out", icon: "logout" }))) return;
     await api("/api/admin/logout", { method: "POST" }).catch(() => {});
     setMenuOpen(false);
     setPhase("login");
@@ -445,6 +463,7 @@ export default function AdminApp() {
 
   return (
     <MediaCtx.Provider value={mediaCtx}>
+      <ConfirmCtx.Provider value={confirm}>
       <MotionConfig reducedMotion="user">
         <div className="flex min-h-dvh text-sm">
           <aside className="sticky top-0 hidden h-dvh w-[272px] shrink-0 border-r border-line bg-panel lg:block">{sidebar}</aside>
@@ -496,7 +515,7 @@ export default function AdminApp() {
                   {dirty ? "Unsaved changes" : "All changes saved"}
                 </span>
                 {dirty && (
-                  <button type="button" className={BTN} onClick={() => window.confirm("Discard all unsaved changes?") && setContent(original)}>
+                  <button type="button" className={BTN} onClick={async () => (await confirm({ title: "Discard unsaved changes?", text: "Every edit since your last save is reverted.", confirmLabel: "Discard", icon: "reset" })) && setContent(original)}>
                     Discard
                   </button>
                 )}
@@ -832,7 +851,7 @@ export default function AdminApp() {
                                 className={`${GHOST_DANGER} ml-auto`}
                                 aria-label={`Delete the message from ${m.name}`}
                                 onClick={async () => {
-                                  if (!window.confirm(`Delete the message from ${m.name}? This cannot be undone.`)) return;
+                                  if (!(await confirm({ title: `Delete the message from ${m.name}?`, text: "This cannot be undone." }))) return;
                                   const res = await run(() => api<{ messages: Message[] }>(`/api/admin/messages?id=${encodeURIComponent(m.id)}`, { method: "DELETE" }));
                                   if (res) setMessages(res.messages);
                                 }}
@@ -940,7 +959,7 @@ export default function AdminApp() {
                         type="button"
                         className={`${DANGER} mt-auto self-start`}
                         onClick={async () => {
-                          if (!window.confirm("Reset ALL content to the defaults? Your edits will be lost. This cannot be undone.")) return;
+                          if (!(await confirm({ title: "Reset all content?", text: "Everything is replaced with the defaults and your edits are lost. This cannot be undone.", confirmLabel: "Reset", icon: "reset" }))) return;
                           const res = await run(() => api<{ content: Content }>("/api/admin/content", { method: "DELETE" }));
                           if (res) {
                             setContent(res.content);
@@ -985,11 +1004,14 @@ export default function AdminApp() {
         </div>
       )}
 
+      <AnimatePresence>{ask && <ConfirmDialog options={ask} onAnswer={answer} />}</AnimatePresence>
+
       {toast && (
         <p role="status" className={`fixed bottom-6 right-6 z-[60] rounded-xl border bg-panel px-5 py-3.5 font-mono text-xs shadow-[0_20px_50px_-20px_rgba(0,0,0,0.9)] ${toast.bad ? "border-danger text-danger" : "border-accent text-accent"}`}>
           {toast.text}
         </p>
       )}
+      </ConfirmCtx.Provider>
     </MediaCtx.Provider>
   );
 }

@@ -12,6 +12,10 @@ type SiteCtx = {
   lock: (locked: boolean) => void;
 };
 
+// True once the page has been shown in this visit, so coming back to the home
+// page from a project page does not replay the loading screen.
+let booted = false;
+
 const Ctx = createContext<SiteCtx>({ ready: true, setReady: () => {}, lock: () => {} });
 export const useSite = () => useContext(Ctx);
 
@@ -24,7 +28,7 @@ export function Providers({
   smooth: boolean;
   children: React.ReactNode;
 }) {
-  const [ready, setReady] = useState(!loader);
+  const [ready, setReady] = useState(() => !loader || booted);
   const lenis = useRef<Lenis | null>(null);
   const readyRef = useRef(ready);
 
@@ -48,6 +52,7 @@ export function Providers({
 
   useEffect(() => {
     readyRef.current = ready;
+    if (ready) booted = true;
     apply(!ready);
   }, [ready, apply]);
 

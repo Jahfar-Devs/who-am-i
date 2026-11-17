@@ -1,17 +1,18 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- images come from the admin media library, sizes unknown */
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
+import Link from "next/link";
+import { useRef } from "react";
 import type { Content } from "@/lib/default-content";
+import { projectSlugs } from "@/lib/slug";
 import { EASE, Reveal, SectionLabel, SplitText, useIsDesktop } from "./anim";
-import { useSite } from "./Providers";
 
 type Data = Content["projects"];
-type Project = Data["items"][number];
+export type Project = Data["items"][number];
 
 /** Browser-style frame that tilts toward the pointer. */
-function Frame({ p }: { p: Project }) {
+export function Frame({ p }: { p: Project }) {
   const rx = useSpring(useMotionValue(0), { stiffness: 160, damping: 18 });
   const ry = useSpring(useMotionValue(0), { stiffness: 160, damping: 18 });
   return (
@@ -58,14 +59,14 @@ function Card({
   total,
   progress,
   detailLabel,
-  onOpen,
+  href,
 }: {
   p: Project;
   i: number;
   total: number;
   progress: MotionValue<number>;
   detailLabel: string;
-  onOpen: () => void;
+  href: string;
 }) {
   const desktop = useIsDesktop();
   // Earlier cards shrink back as later ones stack on top.
@@ -104,9 +105,9 @@ function Card({
             ))}
           </ul>
           <div className="mt-auto flex flex-wrap items-center gap-5 pt-2">
-            <button type="button" onClick={onOpen} className="btn btn-ghost !min-h-11 text-sm">
+            <Link href={href} className="btn btn-ghost !min-h-11 text-sm">
               {detailLabel} <span aria-hidden="true">→</span>
-            </button>
+            </Link>
             {p.liveUrl && (
               <a href={p.liveUrl} target="_blank" rel="noreferrer" className="py-3 text-sm font-medium underline decoration-line2 underline-offset-4 hover:text-accent">
                 Live site ↗
@@ -125,105 +126,10 @@ function Card({
   );
 }
 
-/** Slide-over panel with the full case study. */
-function CaseStudy({ p, n, onClose }: { p: Project; n: number; onClose: () => void }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <motion.div className="fixed inset-0 z-[90] flex justify-end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-      <button type="button" aria-label="Close case study" className="absolute inset-0 cursor-default bg-ink/75 backdrop-blur-sm" onClick={onClose} />
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        aria-label={p.title}
-        data-lenis-prevent
-        className="relative flex h-full w-full max-w-[760px] flex-col gap-8 overflow-y-auto border-l border-line bg-panel p-6 md:p-12"
-        initial={{ x: "100%" }}
-        animate={{ x: "0%" }}
-        exit={{ x: "100%" }}
-        transition={{ duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
-      >
-        <div className="flex items-center justify-between">
-          <p className="label">
-            <span className="text-accent">{String(n).padStart(3, "0")}</span> / {p.kind}
-          </p>
-          <button ref={closeRef} type="button" onClick={onClose} className="btn btn-ghost !min-h-11 !px-4 font-mono text-xs">
-            ESC · CLOSE
-          </button>
-        </div>
-        <h3 className="font-display text-[clamp(32px,5vw,56px)] font-semibold leading-[1.02] tracking-[-0.035em]">{p.title}</h3>
-        {p.image && <img src={p.image} alt={`${p.title} screenshot`} className="aspect-[16/10] w-full rounded-2xl border border-line object-cover" />}
-        <p className="text-lg leading-relaxed text-soft">{p.summary}</p>
-        <dl className="grid grid-cols-3 gap-4 border-y border-line py-6">
-          {p.metrics.map((m, j) => (
-            <div key={j} className="flex flex-col-reverse gap-1">
-              <dt className="font-mono text-[11px] uppercase tracking-[0.08em] text-mute">{m.label}</dt>
-              <dd className="font-display text-[clamp(26px,4vw,40px)] font-semibold tracking-[-0.02em]">{m.value}</dd>
-            </div>
-          ))}
-        </dl>
-        {p.highlights.length > 0 && (
-          <div>
-            <p className="label mb-5 !text-[12px]">What I built</p>
-            <ul className="flex flex-col">
-              {p.highlights.map((h, j) => (
-                <motion.li
-                  key={j}
-                  className="flex gap-4 border-t border-line py-4 leading-relaxed text-soft"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.45 + j * 0.07 }}
-                >
-                  <span className="font-mono text-xs leading-7 text-accent">{String(j + 1).padStart(2, "0")}</span>
-                  {h}
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <ul className="flex flex-wrap gap-1.5 font-mono text-xs text-soft">
-          {p.tags.map((t) => (
-            <li key={t} className="rounded-full border border-line px-3 py-1.5">
-              {t}
-            </li>
-          ))}
-        </ul>
-        {(p.liveUrl || p.repoUrl) && (
-          <div className="flex flex-wrap gap-3">
-            {p.liveUrl && (
-              <a href={p.liveUrl} target="_blank" rel="noreferrer" className="btn btn-accent">
-                Visit live site ↗
-              </a>
-            )}
-            {p.repoUrl && (
-              <a href={p.repoUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">
-                View source ↗
-              </a>
-            )}
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
-
 export default function Projects({ data, index }: { data: Data; index: number }) {
-  const { lock } = useSite();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const [open, setOpen] = useState<number | null>(null);
-
-  const show = (i: number | null) => {
-    setOpen(i);
-    lock(i !== null);
-  };
-  const current = open === null ? null : data.items[open];
+  const slugs = projectSlugs(data.items);
 
   return (
     <section id="projects" className="py-24 md:py-32">
@@ -243,11 +149,9 @@ export default function Projects({ data, index }: { data: Data; index: number })
 
       <div ref={ref} className="wrap mt-12 flex flex-col gap-6 lg:mt-0 lg:gap-0">
         {data.items.map((p, i) => (
-          <Card key={i} p={p} i={i} total={data.items.length} progress={scrollYProgress} detailLabel={data.detailLabel} onOpen={() => show(i)} />
+          <Card key={i} p={p} i={i} total={data.items.length} progress={scrollYProgress} detailLabel={data.detailLabel} href={`/projects/${slugs[i]}`} />
         ))}
       </div>
-
-      <AnimatePresence>{current && <CaseStudy p={current} n={(open ?? 0) + 1} onClose={() => show(null)} />}</AnimatePresence>
     </section>
   );
 }

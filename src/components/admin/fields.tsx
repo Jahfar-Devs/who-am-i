@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- previews of uploaded media */
 import { createContext, useContext, useId, useRef, useState } from "react";
-import { Icon } from "./icons";
+import { Icon, type IconName } from "./icons";
 import { blankFromFields, type Field } from "./schema";
 
 export const INPUT =
@@ -25,7 +25,20 @@ export const MediaCtx = createContext<{
   pick: (onPick: (url: string) => void) => void;
 }>({ upload: async () => [], pick: () => {} });
 
-export const isPdf = (url: string) => /\.pdf($|\?)/i.test(url);
+export type ConfirmOptions = {
+  title: string;
+  text?: string;
+  /** Defaults to "Delete". */
+  confirmLabel?: string;
+  icon?: IconName;
+  /** Red confirm button (default). Set false for non-destructive questions. */
+  danger?: boolean;
+};
+
+/** Opens the confirmation modal and resolves with the answer. Provided by AdminApp. */
+export const ConfirmCtx = createContext<(options: ConfirmOptions) => Promise<boolean>>(async () => false);
+
+export const isPdf =(url: string) => /\.pdf($|\?)/i.test(url);
 
 function move<T>(list: T[], from: number, to: number) {
   if (to < 0 || to >= list.length) return list;
@@ -210,6 +223,7 @@ function ImageInput({ value, onChange }: { value: string; onChange: (v: string) 
 type Row = Record<string, unknown>;
 
 function List({ field, value, onChange }: { field: Extract<Field, { type: "list" }>; value: Row[]; onChange: (v: Row[]) => void }) {
+  const confirm = useContext(ConfirmCtx);
   const [open, setOpen] = useState<number | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
 
@@ -272,8 +286,8 @@ function List({ field, value, onChange }: { field: Extract<Field, { type: "list"
                 className={GHOST_DANGER}
                 aria-label={`Delete ${field.item}`}
                 title="Delete"
-                onClick={() => {
-                  if (!window.confirm(`Delete "${title}"?`)) return;
+                onClick={async () => {
+                  if (!(await confirm({ title: `Delete "${title}"?`, text: `This ${field.item} is removed from the editor. Nothing changes on the live site until you save.` }))) return;
                   onChange(value.filter((_, j) => j !== i));
                   setOpen(null);
                 }}

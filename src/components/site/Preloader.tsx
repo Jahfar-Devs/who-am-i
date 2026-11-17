@@ -9,13 +9,16 @@ const CURTAIN = [0.76, 0, 0.24, 1] as const;
 
 /** Boot-sequence loading screen: log lines tick off while a counter runs to 100, then the screen lifts. */
 export default function Preloader({ data }: { data: Content["loader"] }) {
-  const { setReady } = useSite();
+  const { ready, setReady } = useSite();
+  // Already shown in this visit (in-app navigation back to the home page).
+  const [skip] = useState(ready);
   const reduce = useReducedMotion();
   const [pct, setPct] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
+    if (skip) return;
     let timer: ReturnType<typeof setTimeout>;
     const controls = animate(0, 100, {
       duration: reduce ? 0.3 : Math.max(0.8, data.durationMs / 1000),
@@ -32,9 +35,9 @@ export default function Preloader({ data }: { data: Content["loader"] }) {
       controls.stop();
       clearTimeout(timer);
     };
-  }, [data.durationMs, reduce, setReady]);
+  }, [data.durationMs, reduce, setReady, skip]);
 
-  if (gone) return null;
+  if (skip || gone) return null;
 
   const done = Math.min(data.lines.length, Math.floor((pct / 100) * (data.lines.length + 1)));
   const exit = leaving ? { y: "-100%" } : { y: "0%" };

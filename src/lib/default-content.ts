@@ -16,6 +16,9 @@ export const SECTION_IDS = [
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
+/** A labelled screen in a project's gallery. */
+type Shot = { image: string; label: string };
+
 export const defaultContent = {
   site: {
     name: "Jahfar Swadikh K",
@@ -149,6 +152,7 @@ export const defaultContent = {
     label: "GET /work",
     heading: "Selected work",
     detailLabel: "Open case study",
+    galleryLabel: "System gallery",
     items: [
       {
         title: "NGO Welfare ERP Platform",
@@ -170,6 +174,8 @@ export const defaultContent = {
           "Easebuzz payments with hash verification, webhooks and recurring donations.",
           "WhatsApp and SMS OTP login, push notifications, cron reminders and audit logging.",
         ],
+        // Sample shot. As the first project it is also the shape every saved gallery is checked against (shape.ts).
+        gallery: [{ image: "/placeholders/project-1.svg", label: "Tenant dashboard" }] as Shot[],
         liveUrl: "",
         repoUrl: "",
       },
@@ -193,6 +199,7 @@ export const defaultContent = {
           "Token versioning and revocation, timing-safe OTP verification, NoSQL injection guards and rate limiting.",
           "AI assistant using LLM tool calling, limited to read-only tenant-scoped aggregate queries.",
         ],
+        gallery: [] as Shot[],
         liveUrl: "",
         repoUrl: "",
       },
@@ -216,6 +223,7 @@ export const defaultContent = {
           "JWT sessions, Google OAuth, TOTP two-factor authentication and a Content Security Policy.",
           "AES-256-GCM encrypted secrets vault, login rate limiting, shipped as a PWA.",
         ],
+        gallery: [] as Shot[],
         liveUrl: "",
         repoUrl: "",
       },
@@ -239,6 +247,7 @@ export const defaultContent = {
           "Tally accounting sync through API-key-secured endpoints.",
           "About 8,000 orders migrated from Firebase Firestore to MongoDB with an idempotent script.",
         ],
+        gallery: [] as Shot[],
         liveUrl: "",
         repoUrl: "",
       },
