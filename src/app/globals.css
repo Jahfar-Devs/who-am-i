@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+:root {
+  --accent: #c8f751;
+}
+
+@theme inline {
+  --color-ink: #0b0d0c;
+  --color-panel: #111412;
+  --color-raise: #1a1d1b;
+  --color-line: #262a27;
+  --color-line2: #3a3f3b;
+  --color-fg: #ecede8;
+  --color-soft: #c9ccc5;
+  --color-mute: #9aa097;
+  --color-accent: var(--accent);
+  --color-warn: #f4d35e;
+  --color-danger: #ff9b8f;
+  --font-display: var(--font-space), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jb), ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-ink);
+  color-scheme: dark;
+  scroll-padding-top: 88px;
+}
+
+body {
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: #0b0d0c;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@layer components {
+  .wrap {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+  @media (min-width: 768px) {
+    .wrap {
+      padding-inline: 32px;
+    }
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+  }
+  .outline-text {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--color-fg);
+  }
+  .btn {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 24px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 15px;
+    transition:
+      background-color 0.3s,
+      color 0.3s,
+      border-color 0.3s;
+  }
+  .btn-accent {
+    background: var(--accent);
+    color: #0b0d0c;
+  }
+  .btn-accent:hover {
+    background: var(--color-fg);
+  }
+  /* Light sweep across the accent button on hover */
+  .btn-accent::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.6) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .btn-accent:hover::after {
+    transform: translateX(120%);
+  }
+  .btn-ghost {
+    border: 1px solid var(--color-line2);
+    color: var(--color-fg);
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+/* Scrollable, but without a visible scrollbar (admin sidebar) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Accent ring that travels round a card border on hover */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spin-angle {
+  to {
+    --angle: 360deg;
+  }
+}
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), transparent 0 62%, var(--accent) 82%, transparent 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  animation: spin-angle 3.5s linear infinite paused;
+}
+.glow-border:hover::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+/* Slow drifting colour behind the page */
+@keyframes drift-a {
+  to {
+    transform: translate3d(14vw, 10vh, 0) scale(1.15);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate3d(-12vw, -8vh, 0) scale(0.9);
+  }
+}
+.aurora-a {
+  animation: drift-a 26s ease-in-out infinite alternate;
+}
+.aurora-b {
+  animation: drift-b 32s ease-in-out infinite alternate;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-slow 16s linear infinite;
+}
+
+/* Film grain over the whole page */
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret,
+  .pulse-dot,
+  .aurora-a,
+  .aurora-b,
+  .spin-slow,
+  .glow-border::before {
+    animation: none;
+  }
+}
